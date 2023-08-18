@@ -44,7 +44,10 @@ struct CardView: View {
                 
                 Text(card.content)
                     .padding()
-            } else {
+            } else if card.isMatched {
+                shape.opacity(0)
+            }
+            else {
                 shape
                     .fill(.red)
             }

@@ -7,22 +7,31 @@
 
 import Foundation
 
-struct MemoryGame<CardContent> {
+struct MemoryGame<CardContent> where CardContent: Equatable {
     private(set) var cards:Array<Card>
     
-    mutating func choose(_ card:Card) {
-        let cardIndex = index(of: card);
-        cards[cardIndex].isFaceUp.toggle()
-        print("\(cards)");
-    }
+    private var indexOfTheOneAndOnlyFaceUpCard:Int?
     
-    func index(of card:Card) -> Int {
-        for index in 0..<cards.count {
-            if cards[index].id == card.id {
-                return index;
+    mutating func choose(_ card:Card) {
+        if let cardIndex = cards.firstIndex(where: { $0.id == card.id }),
+           !cards[cardIndex].isFaceUp,
+           !cards[cardIndex].isMatched
+        {
+            if let poIndex = indexOfTheOneAndOnlyFaceUpCard {
+                if(cards[poIndex].content == cards[cardIndex].content) {
+                    cards[poIndex].isMatched = true
+                    cards[cardIndex].isMatched = true
+                }
+                indexOfTheOneAndOnlyFaceUpCard = nil
+            } else {
+                for index in cards.indices {
+                    cards[index].isFaceUp = false
+                }
+                indexOfTheOneAndOnlyFaceUpCard = cardIndex
             }
+            
+            cards[cardIndex].isFaceUp.toggle()
         }
-        return NSNotFound
     }
     
     init(piarsOfCard:Int, createCardContent:(Int) -> CardContent) {
@@ -36,7 +45,7 @@ struct MemoryGame<CardContent> {
     }
     
     struct Card : Identifiable {
-        var isFaceUp = true
+        var isFaceUp = false
         var isMatched = false
         var content:CardContent
         var id = UUID()
